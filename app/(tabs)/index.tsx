@@ -9,20 +9,20 @@ const profiles = [
   },
   {
     id: 2,
-    name: 'Teman 1',
-    info: '00000000001',
+    name: 'Dave William',
+    info: '00000435342',
     image: 'https://i.pravatar.cc/150?img=2',
   },
   {
     id: 3,
-    name: 'John Smith',
-    info: 'johnsmith@example.com',
+    name: 'Andre',
+    info: '00000099999',
     image: 'https://i.pravatar.cc/150?img=3',
   },
   {
     id: 4,
-    name: 'Jane Doe',
-    info: 'janedoe@example.com',
+    name: 'Kink',
+    info: '000000124342',
     image: 'https://i.pravatar.cc/150?img=4',
   },
 ];

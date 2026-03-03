@@ -1,52 +1,80 @@
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import {
+    Appbar,
     Avatar,
     Button,
     Card,
+    Divider,
     FAB,
-    Text
+    Searchbar,
+    Text,
 } from "react-native-paper";
 import styles from "../../styles/AppStyles";
 import users from "../data.json";
 
 export default function Home() {
+  const [search, setSearch] = useState("");
+
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <View style={{ flex: 1 }}>
+      
+      <Appbar.Header>
+        <Appbar.Content title="User List" />
+      </Appbar.Header>
+
       <ScrollView contentContainerStyle={styles.container}>
         
-        <Text variant="headlineMedium" style={styles.title}>
-          User List
-        </Text>
+        <Searchbar
+          placeholder="Search user..."
+          onChangeText={setSearch}
+          value={search}
+          style={{ marginBottom: 20 }}
+        />
 
-        {users.map((user, index) => (
-          <Card key={index} style={styles.card} mode="elevated">
-            <Card.Content style={styles.cardContent}>
-              
-              <Avatar.Image
-                size={70}
-                source={{ uri: user.photo_url }}
-              />
+        {filteredUsers.map((user, index) => (
+          <View key={index}>
+            <Card
+              style={styles.card}
+              mode="elevated"
+              onPress={() => console.log(user.name)}
+            >
+              <Card.Content style={styles.cardContent}>
+                
+                <Avatar.Image
+                  size={70}
+                  source={{ uri: user.photo_url }}
+                />
 
-              <View style={styles.textContainer}>
-                <Text variant="titleMedium" style={styles.name}>
-                  {user.name}
-                </Text>
-                <Text variant="bodyMedium">
-                  {user.email}
-                </Text>
+                <View style={styles.textContainer}>
+                  <Text variant="titleMedium" style={styles.name}>
+                    {user.name}
+                  </Text>
 
-                <Button 
-                  mode="contained" 
-                  style={{ marginTop: 8 }}
-                >
-                  View Profile
-                </Button>
-              </View>
+                  <Text variant="bodyMedium">
+                    {user.email}
+                  </Text>
 
-            </Card.Content>
-          </Card>
+                  <Button
+                    mode="contained"
+                    style={styles.button}
+                    contentStyle={{ paddingVertical: 6 }}
+                    onPress={() => console.log("View Profile")}
+                  >
+                    View Profile
+                  </Button>
+                </View>
+
+              </Card.Content>
+            </Card>
+
+            <Divider style={{ marginVertical: 10 }} />
+          </View>
         ))}
-
       </ScrollView>
 
       <FAB

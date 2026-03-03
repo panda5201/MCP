@@ -3,16 +3,10 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#f2f2f2",
-  },
-  title: {
-    marginBottom: 20,
-    textAlign: "center",
-    fontWeight: "bold",
+    backgroundColor: "#f4f4f4",
   },
   card: {
-    marginBottom: 15,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   cardContent: {
     flexDirection: "row",
@@ -24,6 +18,10 @@ const styles = StyleSheet.create({
   },
   name: {
     fontWeight: "bold",
+  },
+  button: {
+    marginTop: 10,
+    borderRadius: 20,
   },
   fab: {
     position: "absolute",

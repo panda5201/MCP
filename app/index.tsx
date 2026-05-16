@@ -1,3 +1,4 @@
+import { decode } from 'base64-arraybuffer'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as ImagePicker from 'expo-image-picker'
 import * as Location from 'expo-location'
@@ -27,7 +28,6 @@ Notifications.setNotificationHandler({
 
 // ─── Setup Notification Permission & Channel ─────────────────────────────────
 async function setupNotificationsAsync(): Promise<void> {
-  // Android: buat notification channel
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -37,7 +37,6 @@ async function setupNotificationsAsync(): Promise<void> {
     })
   }
 
-  // Minta permission notifikasi
   const { status: existingStatus } = await Notifications.getPermissionsAsync()
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync()
@@ -110,7 +109,10 @@ export default function Index() {
       latitude: loc.coords.latitude,
       longitude: loc.coords.longitude,
     })
-    Alert.alert('Location obtained', `Lat: ${loc.coords.latitude}\nLong: ${loc.coords.longitude}`)
+    Alert.alert(
+      'Location obtained',
+      `Lat: ${loc.coords.latitude}\nLong: ${loc.coords.longitude}`
+    )
   }
 
   const uploadToSupabase = async () => {
@@ -131,12 +133,8 @@ export default function Index() {
         encoding: 'base64',
       })
 
-      // 2. Decode base64 ke bytes
-      const binaryString = atob(base64)
-      const bytes = new Uint8Array(binaryString.length)
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
-      }
+      // 2. Decode base64 ke ArrayBuffer pakai base64-arraybuffer
+      const arrayBuffer = decode(base64)
 
       // 3. Buat nama file unik
       const fileName = `photo-${Date.now()}.jpg`
@@ -145,7 +143,7 @@ export default function Index() {
       // 4. Upload ke Supabase Storage
       const { error: storageError } = await supabase.storage
         .from('images')
-        .upload(filePath, bytes.buffer, {
+        .upload(filePath, arrayBuffer, {
           contentType: 'image/jpeg',
           upsert: false,
         })

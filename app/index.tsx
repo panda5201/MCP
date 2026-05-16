@@ -1,22 +1,73 @@
 import * as FileSystem from 'expo-file-system/legacy'
 import * as ImagePicker from 'expo-image-picker'
 import * as Location from 'expo-location'
-import React, { useState } from 'react'
+import * as Notifications from 'expo-notifications'
+import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Button,
   Image,
+  Platform,
   StyleSheet,
   Text,
   View,
 } from 'react-native'
 import { supabase } from '../utils/supabase'
 
+// ─── Notification Handler ────────────────────────────────────────────────────
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+})
+
+// ─── Setup Notification Permission & Channel ─────────────────────────────────
+async function setupNotificationsAsync(): Promise<void> {
+  // Android: buat notification channel
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    })
+  }
+
+  // Minta permission notifikasi
+  const { status: existingStatus } = await Notifications.getPermissionsAsync()
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert('Permission denied', 'Notification permission is required!')
+    }
+  }
+}
+
+// ─── Send Local Notification ──────────────────────────────────────────────────
+async function sendLocalNotification(title: string, body: string) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      sound: true,
+    },
+    trigger: null, // fire immediately
+  })
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Index() {
   const [image, setImage] = useState<string | null>(null)
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null)
   const [uploading, setUploading] = useState(false)
+
+  useEffect(() => {
+    setupNotificationsAsync()
+  }, [])
 
   const openCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync()
@@ -119,17 +170,33 @@ export default function Index() {
 
       if (insertError) throw insertError
 
-      Alert.alert('Photo and location saved to Supabase!')
+      // 7. ✅ Notifikasi sukses — sertakan latitude & longitude
+      await sendLocalNotification(
+        '✅ Upload Berhasil',
+        `Data berhasil disimpan ke Supabase.\nLat: ${location.latitude.toFixed(6)}\nLong: ${location.longitude.toFixed(6)}`
+      )
+
+      Alert.alert('Success', 'Photo and location saved to Supabase!')
     } catch (error: any) {
+      // 8. ❌ Notifikasi gagal — sertakan latitude & longitude jika tersedia
+      const coordInfo = location
+        ? `\nLat: ${location.latitude.toFixed(6)}\nLong: ${location.longitude.toFixed(6)}`
+        : ''
+
+      await sendLocalNotification(
+        '❌ Upload Gagal',
+        `Gagal menyimpan data ke Supabase.${coordInfo}\nError: ${error.message ?? 'Unknown error'}`
+      )
+
       Alert.alert('Error', error.message ?? 'Failed to upload data.')
     } finally {
       setUploading(false)
     }
-  } // ← tutup uploadToSupabase
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Week 11 — Camera + Location + Supabase</Text>
+      <Text style={styles.title}>Week 12 — Camera + Location + Supabase + Notifications</Text>
 
       <View style={styles.buttonRow}>
         <Button title="📷 Open Camera" onPress={openCamera} />
@@ -161,7 +228,7 @@ export default function Index() {
       </View>
     </View>
   )
-} // ← tutup Index
+}
 
 const styles = StyleSheet.create({
   container: {
